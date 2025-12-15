@@ -1,12 +1,89 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { CameraFeed } from "@/components/CameraFeed";
+import { GateControl } from "@/components/GateControl";
+import { LightControl } from "@/components/LightControl";
+import { SystemStatus } from "@/components/SystemStatus";
+import { Home, Settings, Bell } from "lucide-react";
+
+const cameras = [
+  { id: "1", name: "Camera 01", location: "Front Door", isOnline: true },
+  { id: "2", name: "Camera 02", location: "Backyard", isOnline: true },
+  { id: "3", name: "Camera 03", location: "Garage", isOnline: true },
+  { id: "4", name: "Camera 04", location: "Driveway", isOnline: false },
+];
 
 const Index = () => {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="glass border-b border-border/50 sticky top-0 z-50">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Home className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-foreground">Home Control</h1>
+                <p className="text-sm text-muted-foreground">Security & Automation</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <button className="p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors relative">
+                <Bell className="w-5 h-5 text-muted-foreground" />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-status-online rounded-full" />
+              </button>
+              <button className="p-3 rounded-xl bg-secondary/50 hover:bg-secondary transition-colors">
+                <Settings className="w-5 h-5 text-muted-foreground" />
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-6 py-8">
+        {/* CCTV Section */}
+        <section className="mb-10">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold text-foreground">CCTV Monitoring</h2>
+            <span className="text-sm text-muted-foreground">
+              {cameras.filter(c => c.isOnline).length} of {cameras.length} online
+            </span>
+          </div>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {cameras.map((camera, index) => (
+              <CameraFeed
+                key={camera.id}
+                {...camera}
+                className="fade-in"
+                style={{ animationDelay: `${index * 100}ms` } as React.CSSProperties}
+              />
+            ))}
+          </div>
+        </section>
+
+        {/* Controls Section */}
+        <section>
+          <h2 className="text-2xl font-semibold text-foreground mb-6">Controls</h2>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <GateControl className="lg:col-span-1" />
+            <LightControl className="lg:col-span-1" />
+            <SystemStatus className="lg:col-span-1" />
+          </div>
+        </section>
+      </main>
+
+      {/* Footer */}
+      <footer className="border-t border-border/50 mt-12">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <p className="text-sm text-muted-foreground text-center">
+            System last updated: {new Date().toLocaleString()}
+          </p>
+        </div>
+      </footer>
     </div>
   );
 };
