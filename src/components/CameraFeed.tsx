@@ -1,64 +1,105 @@
-import { Video, Maximize2 } from "lucide-react";
-import { StatusIndicator } from "./StatusIndicator";
-import { cn } from "@/lib/utils";
-import React from "react";
+import React, { useEffect, useRef } from "react";
+import Hls from "hls.js";
 
-interface CameraFeedProps {
+type Camera = {
   id: string;
   name: string;
   location: string;
   isOnline: boolean;
-  className?: string;
-  style?: React.CSSProperties;
+  streamUrl: string; // HLS URL, e.g., http://127.0.0.1:8888/driveway/index.m3u8
+};
+
+function CameraCard({ camera }: { camera: Camera }) {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    let hls: Hls | null = null;
+
+    if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      // Safari native HLS
+      video.src = camera.streamUrl;
+    } else if (Hls.isSupported()) {
+      hls = new Hls({ 
+        xhrSetup: (xhr) => {
+          xhr.withCredentials = false; // prevent CORS issues
+        },
+      });
+      hls.loadSource(camera.streamUrl);
+      hls.attachMedia(video);
+    } else {
+      // fallback
+      video.src = camera.streamUrl;
+    }
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+        hls = null;
+      }
+    };
+  }, [camera.streamUrl]);
+
+  return (
+    <div className="glass rounded-2xl overflow-hidden card-hover group cursor-pointer">
+      <div className="relative aspect-video bg-black">
+        <video
+          ref={videoRef}
+          autoPlay
+          muted
+          playsInline
+          className="w-full h-full object-cover"
+        />
+        {camera.isOnline && (
+          <div className="absolute top-3 right-3 flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-xs text-white bg-black/60 px-2 py-0.5 rounded">
+              Live
+            </span>
+          </div>
+        )}
+      </div>
+      <div className="p-4">
+        <h3 className="font-semibold text-lg">{camera.name}</h3>
+        <p className="text-sm text-muted-foreground">{camera.location}</p>
+      </div>
+    </div>
+  );
 }
 
-export function CameraFeed({ id, name, location, isOnline, className, style }: CameraFeedProps) {
+export function CameraFeedAll() {
+  // Put your HLS URLs here (MediaMTX default: port 8888)
+  const cameras: Camera[] = [
+    {
+      id: "driveway",
+      name: "Driveway",
+      location: "Front Drive",
+      isOnline: true,
+      streamUrl: "http://127.0.0.1:8888/driveway/index.m3u8",
+    },
+    {
+      id: "garden",
+      name: "Garden",
+      location: "Back Garden",
+      isOnline: true,
+      streamUrl: "http://127.0.0.1:8888/garden/index.m3u8",
+    },
+    {
+      id: "gate",
+      name: "Gate",
+      location: "Side Gate",
+      isOnline: true,
+      streamUrl: "http://127.0.0.1:8888/gate/index.m3u8",
+    },
+  ];
+
   return (
-    <div 
-      className={cn(
-        "glass rounded-2xl overflow-hidden card-hover group cursor-pointer fade-in",
-        className
-      )}
-      style={style}
-    >
-      <div className="relative aspect-video bg-gradient-to-br from-secondary to-background">
-        {/* Simulated camera feed pattern */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="relative">
-            <Video className="w-12 h-12 text-muted-foreground/30" />
-            {isOnline && (
-              <div className="absolute -top-1 -right-1 w-3 h-3 bg-status-online rounded-full status-pulse" />
-            )}
-          </div>
-        </div>
-        
-        {/* Grid overlay for camera effect */}
-        <div className="absolute inset-0 opacity-10" style={{
-          backgroundImage: `linear-gradient(hsl(var(--muted-foreground)) 1px, transparent 1px),
-                            linear-gradient(90deg, hsl(var(--muted-foreground)) 1px, transparent 1px)`,
-          backgroundSize: '20px 20px'
-        }} />
-        
-        {/* Timestamp */}
-        <div className="absolute bottom-3 left-3 text-xs text-muted-foreground font-mono">
-          {new Date().toLocaleTimeString()}
-        </div>
-        
-        {/* Expand button */}
-        <button className="absolute top-3 right-3 p-2 rounded-lg bg-background/50 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity">
-          <Maximize2 className="w-4 h-4 text-foreground" />
-        </button>
-      </div>
-      
-      <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div>
-            <h3 className="font-semibold text-foreground">{name}</h3>
-            <p className="text-sm text-muted-foreground">{location}</p>
-          </div>
-          <StatusIndicator status={isOnline ? "online" : "offline"} label={isOnline ? "Live" : "Offline"} />
-        </div>
-      </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+      {cameras.map((camera) => (
+        <CameraCard key={camera.id} camera={camera} />
+      ))}
     </div>
   );
 }

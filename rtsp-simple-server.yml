@@ -1,0 +1,10 @@
+# rtsp-simple-server configuration to expose a path `cam` with HLS
+paths:
+  cam:
+    # accept a pushed stream at rtsp://<host>:8554/cam
+    source: "" # no automatic source; accept publishers
+    sourceProtocol: tcp
+    # HLS settings — server will expose HLS at http://<host>:8888/cam/index.m3u8
+    hls:
+      segment_count: 3
+      segment_duration: 4

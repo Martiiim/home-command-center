@@ -1,7 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DoorOpen, DoorClosed, Lock, Unlock } from "lucide-react";
 import { StatusIndicator } from "./StatusIndicator";
 import { cn } from "@/lib/utils";
+import { triggerGate, getGateStatus } from "@/lib/deviceApi";
+import { useToast } from "@/hooks/use-toast"; 
 
 interface GateControlProps {
   className?: string;
@@ -10,11 +12,35 @@ interface GateControlProps {
 export function GateControl({ className }: GateControlProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLocked, setIsLocked] = useState(true);
+  const toast = useToast();
+
+  useEffect(() => {
+    let mounted = true;
+    async function fetchStatus() {
+      try {
+        const s = await getGateStatus();
+        if (!mounted) return;
+        setIsOpen(s && typeof s.is_closed === "boolean" ? !s.is_closed : false);
+      } catch (e) {
+        // ignore errors
+      }
+    }
+    fetchStatus();
+    const id = setInterval(fetchStatus, 2000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []); 
 
   const handleToggle = () => {
-    if (!isLocked) {
-      setIsOpen(!isOpen);
-    }
+    if (isLocked) return;
+    (async () => {
+      try {
+        await triggerGate();
+        setIsOpen(!isOpen);
+        toast.toast({ title: 'Gate triggered' });
+      } catch (err: any) {
+        toast.toast({ title: 'Failed to trigger gate', description: err?.message });
+      }
+    })();
   };
 
   const handleLockToggle = () => {
@@ -70,27 +96,14 @@ export function GateControl({ className }: GateControlProps) {
                 : "bg-primary/20 text-primary hover:bg-primary/30 glow-primary"
           )}
         >
-          {isOpen ? (
-            <>
-              <DoorClosed className="w-5 h-5" />
-              Close Gate
-            </>
-          ) : (
-            <>
-              <DoorOpen className="w-5 h-5" />
-              Open Gate
-            </>
-          )}
+        <p className="w-50 h-5">Toggle Gate</p>
         </button>
         
         <button
           onClick={handleLockToggle}
-          disabled={isOpen}
           className={cn(
             "p-4 rounded-xl transition-all duration-300",
-            isOpen
-              ? "bg-muted text-muted-foreground cursor-not-allowed"
-              : isLocked 
+            isLocked 
                 ? "bg-status-online/20 text-status-online hover:bg-status-online/30" 
                 : "bg-status-warning/20 text-status-warning hover:bg-status-warning/30"
           )}

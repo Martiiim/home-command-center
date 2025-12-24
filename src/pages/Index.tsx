@@ -1,14 +1,36 @@
-import { CameraFeed } from "@/components/CameraFeed";
+import { CameraFeedAll } from "@/components/CameraFeed";
 import { GateControl } from "@/components/GateControl";
 import { LightControl } from "@/components/LightControl";
 import { SystemStatus } from "@/components/SystemStatus";
 import { Home, Settings, Bell } from "lucide-react";
 
+// Insert your RTSP URLs below (replace placeholders). These values are visible in code
+// and will prefill each camera's RTSP input field in the UI.
 const cameras = [
-  { id: "1", name: "Camera 01", location: "Front Door", isOnline: true },
-  { id: "2", name: "Camera 02", location: "Backyard", isOnline: true },
-  { id: "3", name: "Camera 03", location: "Garage", isOnline: true },
-  { id: "4", name: "Camera 04", location: "Driveway", isOnline: false },
+  {
+    id: "driveway",
+    name: "Driveway",
+    location: "Front Drive",
+    isOnline: true,
+    // Example placeholder — replace with your actual RTSP URL for Driveway
+    streamUrl: "http://127.0.0.1:8554/driveway",
+  },
+  {
+    id: "garden",
+    name: "Garden",
+    location: "Back Garden",
+    isOnline: true,
+    // Example placeholder — replace with your actual RTSP URL for Garden
+    streamUrl: "http://127.0.0.1:8554/garden",
+  },
+  {
+    id: "gate",
+    name: "Gate",
+    location: "Side Gate",
+    isOnline: false,
+    // Example placeholder — replace with your actual RTSP URL for Gate
+    streamUrl: "http://127.0.0.1:8554/gate",
+  },
 ];
 
 const Index = () => {
@@ -52,15 +74,8 @@ const Index = () => {
             </span>
           </div>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {cameras.map((camera, index) => (
-              <CameraFeed
-                key={camera.id}
-                {...camera}
-                className="fade-in"
-                style={{ animationDelay: `${index * 100}ms` } as React.CSSProperties}
-              />
-            ))}
+          <div className="w-full">
+            <CameraFeedAll cameras={cameras} />
           </div>
         </section>
 

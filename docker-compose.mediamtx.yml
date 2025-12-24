@@ -1,0 +1,10 @@
+services:
+  mediamtx:
+    image: aler9/rtsp-simple-server:latest
+    container_name: mediamtx
+    ports:
+      - "8554:8554"   # RTSP
+      - "8889:8888"   # map container HTTP/HLS 8888 -> host 8889 (per user)
+    volumes:
+      - ./mediamtx.yml:/rtsp-simple-server.yml:ro
+    restart: unless-stopped

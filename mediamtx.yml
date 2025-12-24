@@ -1,0 +1,11 @@
+# MediaMTX configuration: proxy the RTSP camera to HLS
+# Stream name: cam1 -> accessible via http://<host>:8888/cam1/index.m3u8
+
+paths:
+  cam:
+    source: "rtsp://127.0.0.1:8554/cam"
+    sourceProtocol: udp
+    # Enable HLS output
+    hls:
+      segment_count: 3
+      segment_duration: 4
